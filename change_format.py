@@ -2,6 +2,7 @@ import os
 import csv
 import pandas as pd
 import calendar
+import datetime
 
 #Global variable
 # Monday:0, Tuesday:1, ...
@@ -78,9 +79,9 @@ def convert_dict_to_df(dic):
 	for key, value in dic.iteritems():
 		tmp_dict = {x : 0 for x in range(24)}
 		tmp_dict['weekday'] = key
-		tmp_dict['count'] = weekday_count[key]
+		#tmp_dict['count'] = weekday_count[key]
 		for i, nu in enumerate(value):
-			tmp_dict[i] = nu
+			tmp_dict[i] = float(nu/weekday_count[key])
 		rent_list.append(tmp_dict)
 	df = pd.DataFrame(rent_list, index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
 	return df
@@ -91,22 +92,31 @@ def write_data_to_csv():
 	df_rent.to_csv("rent.csv", sep=',', encoding='utf-8')
 	df_return.to_csv("return.csv", sep=',', encoding='utf-8')
 
+def convert_time_format(time):
+
+	output_time = datetime.datetime.strptime(time,"%m/%d/%Y %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+
+	return output_time
+
 def main():
-	#for a_csv in os.listdir(FILE_DIR):
-	for a_csv in ['2014_01.csv', '2014_02.csv']:
+	csv_file = os.listdir(FILE_DIR)
+	file_2014 = filter(lambda x:'2014' in x, csv_file)
+	for a_csv in file_2014:
+		file_month = a_csv[5:7]
 		df = pd.read_csv(FILE_DIR + a_csv)
 		data = df.as_matrix()
 		data_number = data.shape[0]
-		print data_number
-		print "tipduration start_time stop_time start_station_id stop_station_id"
 
-		for line in range(15):
+		for line in range(data_number):
 			tipduration = data[line][0]
-			change_time_format(data[line][1], data[line][2])
+			start_time = data[line][1]
+			stop_time = data[line][2]
+			if int(file_month) >= 9:
+				start_time = convert_time_format(start_time)
+				stop_time = convert_time_format(stop_time)
+			change_time_format(start_time, stop_time)
 			count_weekday_times_in_year(2014)
 			write_data_to_csv()
-			#start_time = time_to_sce(data[line][1])
-			#stop_time= time_to_sce(data[line][2])
 			#start_station_id = data[line][3]
 			#stop_station_id = data[line][7]
 
