@@ -1,4 +1,5 @@
 import os
+import csv
 import pandas as pd
 import calendar
 
@@ -71,6 +72,24 @@ def change_time_format(start_time, stop_time):
 	count_weekday_rent_number(rent_year, rent_month, rent_day, rent_sec)
 	count_weekday_return_number(return_year, return_month, return_day, return_sec)
 
+def convert_dict_to_df(dic):
+	rent_list = []
+
+	for key, value in dic.iteritems():
+		tmp_dict = {x : 0 for x in range(24)}
+		tmp_dict['weekday'] = key
+		tmp_dict['count'] = weekday_count[key]
+		for i, nu in enumerate(value):
+			tmp_dict[i] = nu
+		rent_list.append(tmp_dict)
+	df = pd.DataFrame(rent_list, index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+	return df
+
+def write_data_to_csv():
+	df_rent = convert_dict_to_df(weekday_rent)
+	df_return = convert_dict_to_df(weekday_return)
+	df_rent.to_csv("rent.csv", sep=',', encoding='utf-8')
+	df_return.to_csv("return.csv", sep=',', encoding='utf-8')
 
 def main():
 	#for a_csv in os.listdir(FILE_DIR):
@@ -85,6 +104,7 @@ def main():
 			tipduration = data[line][0]
 			change_time_format(data[line][1], data[line][2])
 			count_weekday_times_in_year(2014)
+			write_data_to_csv()
 			#start_time = time_to_sce(data[line][1])
 			#stop_time= time_to_sce(data[line][2])
 			#start_station_id = data[line][3]
