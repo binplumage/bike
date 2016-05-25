@@ -6,6 +6,7 @@ import calendar
 # Monday:0, Tuesday:1, ...
 weekday_rent = {0 : [0]*24, 1 : [0]*24, 2 : [0]*24, 3 : [0]*24, 4 : [0]*24, 5 : [0]*24, 6 : [0]*24}
 weekday_return = {0 : [0]*24, 1 : [0]*24, 2 : [0]*24, 3 : [0]*24, 4 : [0]*24, 5 : [0]*24, 6 : [0]*24}
+weekday_count = { x : 0 for x in range(7)}
 
 def make_sure_folder_exists(folder):
     """
@@ -49,6 +50,19 @@ def get_ymd(time):
 
 	return year, month, day
 
+def count_weekday_times_in_year(year):
+	global weekday_count
+
+	cal = calendar.Calendar()
+	for quater in cal.yeardays2calendar(year):
+		for month in quater:
+			for week in month:
+				for day in week:
+					if day[0] == 0:
+						continue
+					else:
+						weekday_count[day[1]] += 1
+
 def change_time_format(start_time, stop_time):
 	rent_sec = time_to_sce(start_time[11:])
 	return_sec = time_to_sce(stop_time[11:])
@@ -56,6 +70,7 @@ def change_time_format(start_time, stop_time):
 	return_year, return_month, return_day = get_ymd(stop_time)
 	count_weekday_rent_number(rent_year, rent_month, rent_day, rent_sec)
 	count_weekday_return_number(return_year, return_month, return_day, return_sec)
+
 
 def main():
 	#for a_csv in os.listdir(FILE_DIR):
@@ -69,6 +84,7 @@ def main():
 		for line in range(15):
 			tipduration = data[line][0]
 			change_time_format(data[line][1], data[line][2])
+			count_weekday_times_in_year(2014)
 			#start_time = time_to_sce(data[line][1])
 			#stop_time= time_to_sce(data[line][2])
 			#start_station_id = data[line][3]
