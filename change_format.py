@@ -17,6 +17,11 @@ def make_sure_folder_exists(folder):
     if not os.path.exists(folder):
         os.makedirs(folder)
 
+def make_sure_file_exists(filename):
+	if os.path.isfile(filename):
+		NOW_TIME = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+		os.rename(filename, filename + "_" + NOW_TIME)
+
 def set_environment():
 	"""
 	Get current working dir and create a result folder.
@@ -26,6 +31,8 @@ def set_environment():
 	FILE_DIR = SCRIPT_DIR + "\\data\\"
 	RESULT_FOLDER = SCRIPT_DIR + "\\result_data"
 	make_sure_folder_exists(RESULT_FOLDER)
+	make_sure_file_exists(RESULT_FOLDER + "\\rent.csv")
+	make_sure_file_exists(RESULT_FOLDER + "\\return.csv")
 
 def time_to_sce(hms):
 	"""
@@ -36,11 +43,13 @@ def time_to_sce(hms):
 
 def count_weekday_rent_number(year, month, day, sec):
 	global weekday_rent
-	weekday_rent[calendar.weekday(year, month, day)][sec/3600] += 1
+	if year == 2014:
+		weekday_rent[calendar.weekday(year, month, day)][sec/3600] += 1
 
 def count_weekday_return_number(year, month, day, sec):
 	global weekday_return
-	weekday_return[calendar.weekday(year, month, day)][sec/3600] += 1
+	if year == 2014:
+		weekday_return[calendar.weekday(year, month, day)][sec/3600] += 1
 
 def get_ymd(time):
 	"""
@@ -89,8 +98,8 @@ def convert_dict_to_df(dic):
 def write_data_to_csv():
 	df_rent = convert_dict_to_df(weekday_rent)
 	df_return = convert_dict_to_df(weekday_return)
-	df_rent.to_csv("rent.csv", sep=',', encoding='utf-8')
-	df_return.to_csv("return.csv", sep=',', encoding='utf-8')
+	df_rent.to_csv( RESULT_FOLDER +"\\rent.csv", sep=',', encoding='utf-8')
+	df_return.to_csv( RESULT_FOLDER + "\\return.csv", sep=',', encoding='utf-8')
 
 def convert_time_format(time):
 
@@ -115,13 +124,17 @@ def main():
 				start_time = convert_time_format(start_time)
 				stop_time = convert_time_format(stop_time)
 			change_time_format(start_time, stop_time)
-			count_weekday_times_in_year(2014)
-			write_data_to_csv()
+	count_weekday_times_in_year(2014)
+	write_data_to_csv()
 			#start_station_id = data[line][3]
 			#stop_station_id = data[line][7]
 
+print datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+print "Start"
 set_environment()
 main()
+print datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+print "End"
 
 # test change_time_format function
 #change_time_format("2016-05-25 15:37:20" ,"2016-05-27 07:05:01")
