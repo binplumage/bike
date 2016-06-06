@@ -9,6 +9,7 @@ import datetime
 weekday_rent = {0 : [0]*24, 1 : [0]*24, 2 : [0]*24, 3 : [0]*24, 4 : [0]*24, 5 : [0]*24, 6 : [0]*24}
 weekday_return = {0 : [0]*24, 1 : [0]*24, 2 : [0]*24, 3 : [0]*24, 4 : [0]*24, 5 : [0]*24, 6 : [0]*24}
 weekday_count = { x : 0 for x in range(7)}
+month_rent = { x : 0 for x in range(1,13)}
 
 def make_sure_folder_exists(folder):
     """
@@ -19,7 +20,7 @@ def make_sure_folder_exists(folder):
 
 def make_sure_file_exists(filename):
 	if os.path.isfile(filename):
-		NOW_TIME = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+		NOW_TIME = datetime.datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
 		os.rename(filename, filename + "_" + NOW_TIME)
 
 def set_environment():
@@ -74,6 +75,13 @@ def count_weekday_times_in_year(year):
 					else:
 						weekday_count[day[1]] += 1
 
+def count_month_rent(year, month):
+	global month_rent
+
+	if year == 2014:
+		month_rent[month] += 1
+
+
 def change_time_format(start_time, stop_time):
 	rent_sec = time_to_sce(start_time[11:])
 	return_sec = time_to_sce(stop_time[11:])
@@ -81,6 +89,7 @@ def change_time_format(start_time, stop_time):
 	return_year, return_month, return_day = get_ymd(stop_time)
 	count_weekday_rent_number(rent_year, rent_month, rent_day, rent_sec)
 	count_weekday_return_number(return_year, return_month, return_day, return_sec)
+	count_month_rent(rent_year, rent_month)
 
 def convert_dict_to_df(dic):
 	rent_list = []
@@ -95,11 +104,23 @@ def convert_dict_to_df(dic):
 	df = pd.DataFrame(rent_list, index = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
 	return df
 
+def convert_dict_to_df_month(dic):
+	global month_rent
+
+	month_rent_list = []
+	for value in dic.iteritems():
+		month_rent_list.append(value)
+	df = pd.DataFrame(month_rent_list)
+	return df
+
+
 def write_data_to_csv():
 	df_rent = convert_dict_to_df(weekday_rent)
 	df_return = convert_dict_to_df(weekday_return)
+	df_month_rent = convert_dict_to_df_month(month_rent)
 	df_rent.to_csv( RESULT_FOLDER +"\\rent.csv", sep=',', encoding='utf-8')
 	df_return.to_csv( RESULT_FOLDER + "\\return.csv", sep=',', encoding='utf-8')
+	df_month_rent.to_csv(RESULT_FOLDER + "\\month_rent.csv", sep=',', encoding='utf-8')
 
 def convert_time_format(time):
 
@@ -129,11 +150,11 @@ def main():
 			#start_station_id = data[line][3]
 			#stop_station_id = data[line][7]
 
-print datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+print datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
 print "Start"
 set_environment()
-main()
-print datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+main()#
+print datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
 print "End"
 
 # test change_time_format function
