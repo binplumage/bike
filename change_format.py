@@ -7,9 +7,12 @@ import datetime
 #Global variable
 # Monday:0, Tuesday:1, ...
 weekday_rent = {0 : [0]*24, 1 : [0]*24, 2 : [0]*24, 3 : [0]*24, 4 : [0]*24, 5 : [0]*24, 6 : [0]*24}
-weekday_return = {0 : [0]*24, 1 : [0]*24, 2 : [0]*24, 3 : [0]*24, 4 : [0]*24, 5 : [0]*24, 6 : [0]*24}
 weekday_count = { x : 0 for x in range(7)}
 month_rent = { x : 0 for x in range(1,13)}
+
+def display_message(meg):
+	print "[" + datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + "] " + meg
+
 
 def make_sure_folder_exists(folder):
     """
@@ -21,7 +24,7 @@ def make_sure_folder_exists(folder):
 def make_sure_file_exists(filename):
 	if os.path.isfile(filename):
 		NOW_TIME = datetime.datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
-		os.rename(filename, filename + "_" + NOW_TIME)
+		os.rename(filename, NOW_TIME + "_" + filename)
 
 def set_environment():
 	"""
@@ -32,8 +35,7 @@ def set_environment():
 	FILE_DIR = SCRIPT_DIR + "\\data\\"
 	RESULT_FOLDER = SCRIPT_DIR + "\\result_data"
 	make_sure_folder_exists(RESULT_FOLDER)
-	make_sure_file_exists(RESULT_FOLDER + "\\rent.csv")
-	make_sure_file_exists(RESULT_FOLDER + "\\return.csv")
+	make_sure_file_exists(RESULT_FOLDER + "\\rent_weekday.csv")
 
 def time_to_sce(hms):
 	"""
@@ -46,11 +48,6 @@ def count_weekday_rent_number(year, month, day, sec):
 	global weekday_rent
 	if year == 2014:
 		weekday_rent[calendar.weekday(year, month, day)][sec/3600] += 1
-
-def count_weekday_return_number(year, month, day, sec):
-	global weekday_return
-	if year == 2014:
-		weekday_return[calendar.weekday(year, month, day)][sec/3600] += 1
 
 def get_ymd(time):
 	"""
@@ -84,11 +81,8 @@ def count_month_rent(year, month):
 
 def change_time_format(start_time, stop_time):
 	rent_sec = time_to_sce(start_time[11:])
-	return_sec = time_to_sce(stop_time[11:])
 	rent_year, rent_month, rent_day = get_ymd(start_time)
-	return_year, return_month, return_day = get_ymd(stop_time)
 	count_weekday_rent_number(rent_year, rent_month, rent_day, rent_sec)
-	count_weekday_return_number(return_year, return_month, return_day, return_sec)
 	count_month_rent(rent_year, rent_month)
 
 def convert_dict_to_df(dic):
@@ -97,7 +91,6 @@ def convert_dict_to_df(dic):
 	for key, value in dic.iteritems():
 		tmp_dict = {x : 0 for x in range(24)}
 		tmp_dict['weekday'] = key
-		#tmp_dict['count'] = weekday_count[key]
 		for i, nu in enumerate(value):
 			tmp_dict[i] = float(nu/weekday_count[key])
 		rent_list.append(tmp_dict)
@@ -116,10 +109,8 @@ def convert_dict_to_df_month(dic):
 
 def write_data_to_csv():
 	df_rent = convert_dict_to_df(weekday_rent)
-	df_return = convert_dict_to_df(weekday_return)
 	df_month_rent = convert_dict_to_df_month(month_rent)
-	df_rent.to_csv( RESULT_FOLDER +"\\rent.csv", sep=',', encoding='utf-8')
-	df_return.to_csv( RESULT_FOLDER + "\\return.csv", sep=',', encoding='utf-8')
+	df_rent.to_csv( RESULT_FOLDER +"\\rent_weekday.csv", sep=',', encoding='utf-8')
 	df_month_rent.to_csv(RESULT_FOLDER + "\\month_rent.csv", sep=',', encoding='utf-8')
 
 def convert_time_format(time):
@@ -132,11 +123,11 @@ def main():
 	csv_file = os.listdir(FILE_DIR)
 	file_2014 = filter(lambda x:'2014' in x, csv_file)
 	for a_csv in file_2014:
+		display_message(a_csv)
 		file_month = a_csv[5:7]
 		df = pd.read_csv(FILE_DIR + a_csv)
 		data = df.as_matrix()
 		data_number = data.shape[0]
-
 		for line in range(data_number):
 			tipduration = data[line][0]
 			start_time = data[line][1]
@@ -150,12 +141,10 @@ def main():
 			#start_station_id = data[line][3]
 			#stop_station_id = data[line][7]
 
-print datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
-print "Start"
+display_message("Start")
 set_environment()
-main()#
-print datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
-print "End"
+main()
+display_message("End")
 
 # test change_time_format function
 #change_time_format("2016-05-25 15:37:20" ,"2016-05-27 07:05:01")
